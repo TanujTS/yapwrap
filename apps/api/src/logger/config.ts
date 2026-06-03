@@ -1,3 +1,5 @@
+import { env } from "../config/env";
+
 export interface LoggerConfig {
   environment: string;
   isDevelopment: boolean;
@@ -7,11 +9,11 @@ export interface LoggerConfig {
 }
 
 export function getLoggerConfig(): LoggerConfig {
-  const environment = process.env.NODE_ENV || "development";
+  const environment = env.NODE_ENV;
   const isDevelopment = environment === "development";
   const isProduction = environment === "production";
-  const logLevel = process.env.LOG_LEVEL || (isDevelopment ? "debug" : "info");
-  const logsDirectory = process.env.LOGS_DIR || "./logs";
+  const logLevel = env.LOG_LEVEL || (isDevelopment ? "debug" : "info");
+  const logsDirectory = env.LOGS_DIR || "./logs";
 
   return {
     environment,

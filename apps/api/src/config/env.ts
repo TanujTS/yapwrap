@@ -1,6 +1,24 @@
-export const env = {
-  NODE_ENV: process.env.NODE_ENV ?? "development",
-  LOG_LEVEL: process.env.LOG_LEVEL,
-  LOGS_DIR: process.env.LOGS_DIR,
-  WEB_URL: process.env.WEB_URL,
-};
+import { config } from "dotenv";
+import { z } from "zod";
+import path from "path";
+
+// Load .env file from the project root
+config({ path: path.resolve(__dirname, "../../../../.env") });
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  PORT: z.string().default("8000"),
+  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  LOG_LEVEL: z.string().optional(),
+  LOGS_DIR: z.string().optional(),
+  WEB_URL: z.string().optional(),
+});
+
+const _env = envSchema.safeParse(process.env);
+
+if (!_env.success) {
+  console.error("❌ Invalid environment variables:", _env.error.format());
+  throw new Error("Invalid environment variables");
+}
+
+export const env = _env.data;
