@@ -1,15 +1,34 @@
-# api
+# API Structure
 
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run:
+This follows the `express-boilerplate` shape, but feature code goes under `modules` instead of separate `controllers` and `routes`.
 
 ```bash
-bun run index.ts
+src
+├── app.ts                 # Express app setup and module registration
+├── index.ts               # Server listener only
+├── config                 # Environment/config helpers
+├── db                     # Database client and schema
+├── integrations           # Third-party clients such as Slack/Email/etc.
+├── lib                    # Shared libraries such as auth provider setup
+├── logger                 # Pino logger and HTTP logger setup
+├── middlewares            # Express middleware
+├── modules                # Feature modules
+│   ├── action-items
+│   ├── auth
+│   ├── evaluation
+│   ├── meetings
+│   └── reminders
+├── schemas                # Shared validation schemas
+├── types                  # App-wide TypeScript types
+└── utils                  # Shared helpers like responses/errors
 ```
 
-This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+## What Goes Where
+
+- `modules/<feature>`: feature router/module, service, repository, and local schema files.
+- `middlewares`: auth guard, trace ID, request shaping, error handling.
+- `utils/api-response.ts`: unified success/error response helpers.
+- `utils/api-error.ts`: shared API error class.
+- `logger`: Pino app logger and Express HTTP logger.
+- `db`: database connection and table/model definitions.
+- `integrations`: real third-party integration clients used by modules.

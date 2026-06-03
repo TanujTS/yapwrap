@@ -1,12 +1,8 @@
-import express from "express";
+import app from "./app";
+import { logger } from "./logger";
 
-const app = express();
-const port = 8080;
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+const port = process.env.PORT || 8000;
 
 app.listen(port, () => {
-  console.log(`Listening on port ${port}...`);
-}); 
+  logger.info({ event: "server.started", port });
+});
