@@ -2,7 +2,6 @@ import express from "express";
 import { actionItemsModule } from "./modules/action-items/action-items.routes";
 import { evaluationModule } from "./modules/evaluation/evaluation.routes";
 import { meetingsModule } from "./modules/meetings/meetings.routes";
-import { remindersModule } from "./modules/reminders/reminders.module";
 import { corsMiddleware } from "./middlewares/cors";
 import { errorHandler } from "./middlewares/error-handler";
 import { traceMiddleware } from "./middlewares/trace";
@@ -27,7 +26,6 @@ app.use(httpLogger);
 app.use("/api/meetings", meetingsModule);
 app.use("/api/action-items", actionItemsModule);
 app.use("/api/evaluation", evaluationModule);
-app.use("/api/reminders", remindersModule);
 
 app.use(errorHandler);
 

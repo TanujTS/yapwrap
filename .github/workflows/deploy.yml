@@ -8,6 +8,7 @@ on:
       - 'apps/api/**'
       - 'docker-compose.yml'
       - 'Dockerfile'
+      - '.github/workflows/**'
 
 jobs:
   deploy:
