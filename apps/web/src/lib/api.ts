@@ -44,6 +44,35 @@ export const api = {
         body: JSON.stringify(data),
       }),
   },
+  evaluation: {
+    analyze: (meetingId: string) =>
+      apiFetch<MeetingAnalysis>(`/api/evaluation/${meetingId}`, {
+        method: "POST",
+      }),
+  },
+  actionItems: {
+    list: (params?: { meetingId?: string; status?: string; assignee?: string }) =>
+      apiFetch<ActionItem[]>("/api/action-items", {
+        params: params as Record<string, string>,
+      }),
+
+    create: (data: CreateActionItemPayload) =>
+      apiFetch<ActionItem>("/api/action-items", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    updateStatus: (id: string, status: string) =>
+      apiFetch<ActionItem>(`/api/action-items/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }),
+
+    delete: (id: string) =>
+      apiFetch<{ success: boolean }>(`/api/action-items/${id}`, {
+        method: "DELETE",
+      }),
+  },
 };
 
 // ---------- Types ----------
@@ -77,4 +106,51 @@ export type CreateMeetingPayload = {
   participants: string[];
   meetingDate: string;
   transcript: TranscriptEntry[];
+};
+
+export type Citation = {
+  timestamp: string;
+  speaker?: string;
+};
+
+export type Insight = {
+  text: string;
+  citations: Citation[];
+};
+
+export type GeneratedActionItem = {
+  task: string;
+  assignee: string | null;
+  suggestedDueDate: string | null;
+  citations: Citation[];
+};
+
+export type MeetingAnalysis = {
+  id: string;
+  meetingId: string;
+  summary: Insight[];
+  actionItems: GeneratedActionItem[];
+  decisions: Insight[];
+  followUps: Insight[];
+  createdAt: string;
+};
+
+export type ActionItem = {
+  id: string;
+  meetingId: string;
+  analysisId?: string;
+  task: string;
+  assignee?: string;
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  dueDate?: string;
+  citations: Citation[];
+};
+
+export type CreateActionItemPayload = {
+  meetingId: string;
+  analysisId?: string;
+  task: string;
+  assignee?: string;
+  dueDate?: string;
+  citations?: Citation[];
 };

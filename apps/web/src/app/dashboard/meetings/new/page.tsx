@@ -125,9 +125,9 @@ export default function NewMeetingPage() {
         transcript: validTranscript,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           toast.success("Meeting created successfully")
-          router.push("/dashboard")
+          router.push(`/dashboard/meetings/${data.id}`)
         },
         onError: (error) => {
           toast.error(error.message || "Failed to create meeting")

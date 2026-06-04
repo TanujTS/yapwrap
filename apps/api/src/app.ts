@@ -1,6 +1,6 @@
 import express from "express";
-import { actionItemsModule } from "./modules/action-items/action-items.module";
-import { evaluationModule } from "./modules/evaluation/evaluation.module";
+import { actionItemsModule } from "./modules/action-items/action-items.routes";
+import { evaluationModule } from "./modules/evaluation/evaluation.routes";
 import { meetingsModule } from "./modules/meetings/meetings.routes";
 import { remindersModule } from "./modules/reminders/reminders.module";
 import { corsMiddleware } from "./middlewares/cors";

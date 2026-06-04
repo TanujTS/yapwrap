@@ -9,6 +9,7 @@ import {
   PlusIcon,
   MenuIcon,
   XIcon,
+  ListTodoIcon,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -30,15 +31,15 @@ function initials(name?: string | null, email?: string | null) {
 
 const navItems = [
   {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboardIcon,
-  },
-  {
     label: "All Meetings",
     href: "/dashboard",
     icon: CalendarDaysIcon,
   },
+  {
+    label: "Action Items",
+    href: "/dashboard/action-items",
+    icon: ListTodoIcon,
+  }
 ]
 
 export default function DashboardLayout({
@@ -79,11 +80,10 @@ export default function DashboardLayout({
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-                }`}
+                  }`}
               >
                 <item.icon className="size-4" />
                 {item.label}

@@ -9,10 +9,17 @@ import {
   MessageSquareTextIcon,
   UsersIcon,
   WrenchIcon,
+  SparklesIcon,
+  LoaderCircleIcon,
+  PlusIcon,
 } from "lucide-react"
 import { motion } from "motion/react"
+import { useState } from "react"
 
 import { useMeeting } from "@/hooks/use-meetings"
+import { useAnalyzeMeeting } from "@/hooks/use-evaluation"
+import { AnalysisView } from "./components/analysis-view"
+import { ActionItemModal } from "./components/action-item-modal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -50,6 +57,17 @@ function initials(name: string) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("")
+}
+
+function formatTranscriptTimestamp(ts: string) {
+  const parts = ts.split(":")
+  if (parts.length === 3) {
+    const hours = parseInt(parts[0])
+    const mins = parseInt(parts[1])
+    const totalMins = hours * 60 + mins
+    return `${totalMins.toString().padStart(2, "0")}:${parts[2]}`
+  }
+  return ts
 }
 
 function DetailSkeleton() {
@@ -93,6 +111,8 @@ export default function MeetingDetailPage({
 }) {
   const { id } = use(params)
   const { data: meeting, isLoading, isError, error } = useMeeting(id)
+  const analyzeMeeting = useAnalyzeMeeting(id)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   if (isLoading) {
     return <DetailSkeleton />
@@ -147,172 +167,197 @@ export default function MeetingDetailPage({
             </span>
           </div>
         </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => setIsModalOpen(true)}>
+            <PlusIcon className="mr-2 size-4" />
+            Add Action Item
+          </Button>
+          <Button
+            onClick={() => analyzeMeeting.mutate()}
+            disabled={analyzeMeeting.isPending || !!analyzeMeeting.data}
+            variant={analyzeMeeting.data ? "outline" : "default"}
+          >
+            {analyzeMeeting.isPending ? (
+              <LoaderCircleIcon className="mr-2 size-4 animate-spin" />
+            ) : (
+              <SparklesIcon className="mr-2 size-4" />
+            )}
+            {analyzeMeeting.data ? "Analyzed" : "Analyze with AI"}
+          </Button>
+        </div>
       </motion.div>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.05 }}
-        className="grid gap-3 sm:grid-cols-3"
-      >
-        <Card>
-          <CardContent className="flex items-center gap-3 py-4">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-              <UsersIcon className="size-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Participants</p>
-              <p className="font-heading text-xl font-semibold">
-                {meeting.participants.length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 py-4">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-              <MessageSquareTextIcon className="size-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">
-                Transcript Entries
-              </p>
-              <p className="font-heading text-xl font-semibold">
-                {meeting.transcript.length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 py-4">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-              <WrenchIcon className="size-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Action Items</p>
-              <p className="font-heading text-xl font-semibold text-muted-foreground">
-                —
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      {/* Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-4">
+        {/* Main Content: Transcript & Analysis */}
+        <div className="lg:col-span-3 flex flex-col gap-8">
+          {/* AI Analysis View */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.1 }}
+          >
+            {analyzeMeeting.data ? (
+              <AnalysisView analysis={analyzeMeeting.data} meetingId={meeting.id} />
+            ) : (
+              <Card className="border-dashed bg-muted/20">
+                <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-background border shadow-sm">
+                    <SparklesIcon className="size-6 text-primary animate-pulse" />
+                  </div>
+                  <div className="flex flex-col gap-1 mt-2">
+                    <p className="text-sm font-semibold text-foreground">
+                      No AI analysis yet
+                    </p>
+                    <p className="max-w-xs text-xs text-muted-foreground leading-relaxed">
+                      Transform this transcript into actionable insights. Extract decisions,
+                      summaries, and tasks with one click.
+                    </p>
+                  </div>
+                  <Button
+                    className="mt-4"
+                    size="sm"
+                    onClick={() => analyzeMeeting.mutate()}
+                    disabled={analyzeMeeting.isPending}
+                  >
+                    {analyzeMeeting.isPending ? (
+                      <LoaderCircleIcon className="mr-2 size-4 animate-spin" />
+                    ) : (
+                      <SparklesIcon className="mr-2 size-4" />
+                    )}
+                    Generate Analysis
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </motion.div>
 
-      {/* Participants */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.1 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Participants</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {meeting.participants.map((p) => (
-                <div
-                  key={p.email}
-                  className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2"
-                >
-                  <Avatar className="size-7">
-                    <AvatarFallback className="text-xs">
-                      {initials(p.name)}
-                    </AvatarFallback>
-                  </Avatar>
+          <Separator />
+
+          {/* Transcript */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.2 }}
+          >
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex flex-col gap-1">
+                  <h2 className="font-heading text-xl font-semibold">Transcript</h2>
+                  <p className="text-sm text-muted-foreground">Full meeting history with speakers</p>
+                </div>
+                <div className="flex flex-wrap gap-1.5 justify-end max-w-[50%]">
+                  {uniqueSpeakers.map((speaker) => (
+                    <Badge key={speaker} variant="secondary" className="text-[10px] font-medium px-2 py-0">
+                      {speaker}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <Card className="border-none bg-muted/30 shadow-none">
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[600px]">
+                    <div className="flex flex-col p-4 gap-2">
+                      {meeting.transcript.map((entry, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{
+                            duration: 0.2,
+                            delay: 0.01 * index,
+                          }}
+                          className="group flex gap-4 rounded-xl px-4 py-3 transition-colors hover:bg-background/60"
+                        >
+                          <span className="mt-1 shrink-0 font-mono text-[10px] text-muted-foreground/60 w-10">
+                            {formatTranscriptTimestamp(entry.timestamp)}
+                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-bold text-primary/80 uppercase tracking-tight">
+                              {entry.speaker}
+                            </span>
+                            <p className="text-sm leading-relaxed text-foreground/90">
+                              {entry.text}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Sidebar: Participants & Stats */}
+        <div className="flex flex-col gap-6">
+          <motion.div
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25, delay: 0.15 }}
+            className="sticky top-6 flex flex-col gap-6"
+          >
+            {/* Quick Stats Card */}
+            <Card className="bg-primary text-primary-foreground border-none">
+              <CardContent className="p-6 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium opacity-80 uppercase tracking-wider">Meeting Pulse</p>
+                  <UsersIcon className="size-4 opacity-80" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{p.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {p.email}
-                    </span>
+                    <p className="text-2xl font-bold">{meeting.participants.length}</p>
+                    <p className="text-[10px] opacity-70">Participants</p>
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-2xl font-bold">{meeting.transcript.length}</p>
+                    <p className="text-[10px] opacity-70">Messages</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+              </CardContent>
+            </Card>
 
-      {/* Transcript */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.15 }}
-      >
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Transcript</CardTitle>
-              <div className="flex gap-1.5">
-                {uniqueSpeakers.map((speaker) => (
-                  <Badge key={speaker} variant="outline" className="text-xs">
-                    {speaker}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <CardDescription>
-              Full meeting transcript with timestamps
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[500px]">
-              <div className="flex flex-col gap-1">
-                {meeting.transcript.map((entry, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      duration: 0.2,
-                      delay: 0.2 + index * 0.03,
-                    }}
-                    className="group flex gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/50"
-                  >
-                    <Badge
-                      variant="outline"
-                      className="mt-0.5 h-fit shrink-0 font-mono text-[11px] text-muted-foreground"
+            {/* Participants Card */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">Participants</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-3">
+                  {meeting.participants.map((p) => (
+                    <div
+                      key={p.email}
+                      className="flex items-center gap-3"
                     >
-                      {entry.timestamp}
-                    </Badge>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium text-primary">
-                        {entry.speaker}
-                      </span>
-                      <p className="text-sm leading-relaxed text-foreground/90">
-                        {entry.text}
-                      </p>
+                      <Avatar className="size-8 border-2 border-background">
+                        <AvatarFallback className="text-[10px] bg-muted">
+                          {initials(p.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-medium truncate">{p.name}</span>
+                        <span className="text-[10px] text-muted-foreground truncate">
+                          {p.email}
+                        </span>
+                      </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
 
-      {/* Action Items Placeholder */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.2 }}
-      >
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
-              <WrenchIcon className="size-5 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium text-muted-foreground">
-              Action items will appear here
-            </p>
-            <p className="max-w-sm text-xs text-muted-foreground/70">
-              Run AI analysis on this meeting to extract action items, decisions,
-              and follow-ups.
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
+      {meeting && (
+        <ActionItemModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          meetingId={meeting.id}
+        />
+      )}
     </div>
   )
 }
