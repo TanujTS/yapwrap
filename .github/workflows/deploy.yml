@@ -22,5 +22,5 @@ jobs:
           script: |
             cd ~/yapwrap
             git pull origin main
-            docker compose up --build -d
-            docker image prune -f
+            sudo docker compose up --build -d
+            sudo docker image prune -f
