@@ -1,4 +1,8 @@
+"use client"
+
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 import {
   ArrowRightIcon,
   CheckCircle2Icon,
@@ -9,6 +13,7 @@ import {
 
 import DotGrid from "@/components/DotGrid"
 import { AuthActions } from "@/components/auth-actions"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -33,19 +38,36 @@ const highlights = [
 ]
 
 export default function Home() {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = resolvedTheme === "dark"
+  const dotgridBase = isDark ? "#2F293A" : "#ffffff"
+  const dotgridActive = isDark ? "#10b981" : "#10b981"
+
   return (
     <main className="relative min-h-svh overflow-hidden bg-background">
-      <DotGrid
-        className="pointer-events-none absolute inset-0 opacity-100"
-        dotSize={5}
-        gap={18}
-        baseColor="#2F293A"
-        activeColor="#059669"
-        proximity={140}
-        shockRadius={260}
-        shockStrength={3}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-background/55" />
+
+      {/* DotGrid background — fixed to viewport so it always fills */}
+      <div className="fixed inset-0 z-0" style={{ width: "100vw", height: "100vh" }}>
+        {mounted && (
+          <DotGrid
+            dotSize={5}
+            gap={18}
+            baseColor={dotgridBase}
+            activeColor={dotgridActive}
+            proximity={140}
+            shockRadius={260}
+            shockStrength={3}
+          />
+        )}
+      </div>
+
+      {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl flex-col px-5 py-5">
         <header className="flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 font-heading text-lg font-medium">
@@ -54,7 +76,10 @@ export default function Home() {
             </span>
             Yapwrap
           </Link>
-          <AuthActions />
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <AuthActions />
+          </div>
         </header>
 
         <section className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[1fr_420px] lg:py-16">
@@ -128,15 +153,18 @@ export default function Home() {
 
       <section id="flow" className="relative z-10 border-t border-border bg-background/95">
         <div className="mx-auto grid w-full max-w-6xl gap-4 px-5 py-8 md:grid-cols-3">
-          {highlights.map((item) => (
-            <Card key={item.title} size="sm">
-              <CardHeader>
-                <item.icon data-icon="inline-start" />
-                <CardTitle>{item.title}</CardTitle>
-                <CardDescription>{item.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
+          {highlights.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Card key={item.title}>
+                <CardHeader>
+                  <Icon className="mb-2 h-6 w-6 text-primary" />
+                  <CardTitle>{item.title}</CardTitle>
+                  <CardDescription>{item.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            );
+          })}
         </div>
       </section>
     </main>

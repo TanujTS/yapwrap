@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { gsap } from 'gsap';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
+import { useTheme } from 'next-themes';
 
 gsap.registerPlugin(InertiaPlugin);
 
@@ -40,9 +41,24 @@ export interface DotGridProps {
   style?: React.CSSProperties;
 }
 
+function resolveColor(color: string): string {
+  if (typeof window === 'undefined') return color;
+  if (color.startsWith('var(')) {
+    const varName = color.slice(4, -1).trim();
+    const resolved = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    console.log(`[DotGrid] Resolved ${varName} to:`, resolved);
+    return resolved;
+  }
+  return color;
+}
+
 function hexToRgb(hex: string) {
-  const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
-  if (!m) return { r: 0, g: 0, b: 0 };
+  const resolved = resolveColor(hex);
+  const m = resolved.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  if (!m) {
+    console.log(`[DotGrid] Failed to match regex for hex:`, resolved);
+    return { r: 0, g: 0, b: 0 };
+  }
   return {
     r: parseInt(m[1], 16),
     g: parseInt(m[2], 16),
@@ -79,8 +95,10 @@ const DotGrid: React.FC<DotGridProps> = ({
     lastY: 0
   });
 
-  const baseRgb = useMemo(() => hexToRgb(baseColor), [baseColor]);
-  const activeRgb = useMemo(() => hexToRgb(activeColor), [activeColor]);
+  const { resolvedTheme } = useTheme();
+
+  const baseRgb = useMemo(() => hexToRgb(baseColor), [baseColor, resolvedTheme]);
+  const activeRgb = useMemo(() => hexToRgb(activeColor), [activeColor, resolvedTheme]);
 
   const circlePath = useMemo(() => {
     if (typeof window === 'undefined' || !window.Path2D) return null;
