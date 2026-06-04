@@ -1,7 +1,7 @@
 import express from "express";
 import { actionItemsModule } from "./modules/action-items/action-items.module";
 import { evaluationModule } from "./modules/evaluation/evaluation.module";
-import { meetingsModule } from "./modules/meetings/meetings.module";
+import { meetingsModule } from "./modules/meetings/meetings.routes";
 import { remindersModule } from "./modules/reminders/reminders.module";
 import { corsMiddleware } from "./middlewares/cors";
 import { errorHandler } from "./middlewares/error-handler";

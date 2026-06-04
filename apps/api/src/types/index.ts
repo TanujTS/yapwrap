@@ -1,16 +1,15 @@
 import type { Request } from "express";
+import type { auth } from "../utils/auth";
 
-export type AuthenticatedUser = {
-  id: string;
-  name: string;
-  email: string;
-}; //replace with better auth schema later
+export type AuthUser = typeof auth.$Infer.Session.user;
+export type AuthSession = typeof auth.$Infer.Session.session;
 
 declare global {
   namespace Express {
     interface Request {
       traceId: string;
-      user?: AuthenticatedUser;
+      user?: AuthUser;
+      session?: AuthSession;
     }
   }
 }

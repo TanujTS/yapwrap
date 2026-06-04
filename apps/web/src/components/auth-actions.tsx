@@ -43,6 +43,9 @@ export function AuthActions() {
 
   return (
     <div className="flex items-center gap-2">
+      <Button asChild variant="secondary">
+        <Link href="/dashboard">Dashboard</Link>
+      </Button>
       <Avatar size="sm">
         {session.user.image ? (
           <AvatarImage src={session.user.image} alt={session.user.name || "User"} />

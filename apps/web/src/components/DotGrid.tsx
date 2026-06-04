@@ -1,14 +1,17 @@
 'use client';
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { gsap } from 'gsap';
+import { InertiaPlugin } from 'gsap/InertiaPlugin';
 
-const throttle = <Args extends unknown[]>(func: (...args: Args) => void, limit: number) => {
+gsap.registerPlugin(InertiaPlugin);
+
+const throttle = (func: (...args: any[]) => void, limit: number) => {
   let lastCall = 0;
-  return (...args: Args) => {
+  return function (this: any, ...args: any[]) {
     const now = performance.now();
     if (now - lastCall >= limit) {
       lastCall = now;
-      func(...args);
+      func.apply(this, args);
     }
   };
 };
@@ -60,7 +63,7 @@ const DotGrid: React.FC<DotGridProps> = ({
   resistance = 750,
   returnDuration = 1.5,
   className = '',
-  style = undefined
+  style
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -177,9 +180,7 @@ const DotGrid: React.FC<DotGridProps> = ({
     let ro: ResizeObserver | null = null;
     if ('ResizeObserver' in window) {
       ro = new ResizeObserver(buildGrid);
-      if (wrapperRef.current) {
-        ro.observe(wrapperRef.current);
-      }
+      wrapperRef.current && ro.observe(wrapperRef.current);
     } else {
       (window as Window).addEventListener('resize', buildGrid);
     }
@@ -224,10 +225,7 @@ const DotGrid: React.FC<DotGridProps> = ({
           const pushX = dot.cx - pr.x + vx * 0.005;
           const pushY = dot.cy - pr.y + vy * 0.005;
           gsap.to(dot, {
-            xOffset: pushX,
-            yOffset: pushY,
-            duration: Math.min(0.7, Math.max(0.18, resistance / 2000)),
-            ease: 'power3.out',
+            inertia: { xOffset: pushX, yOffset: pushY, resistance },
             onComplete: () => {
               gsap.to(dot, {
                 xOffset: 0,
@@ -255,10 +253,7 @@ const DotGrid: React.FC<DotGridProps> = ({
           const pushX = (dot.cx - cx) * shockStrength * falloff;
           const pushY = (dot.cy - cy) * shockStrength * falloff;
           gsap.to(dot, {
-            xOffset: pushX,
-            yOffset: pushY,
-            duration: Math.min(0.7, Math.max(0.18, resistance / 2000)),
-            ease: 'power3.out',
+            inertia: { xOffset: pushX, yOffset: pushY, resistance },
             onComplete: () => {
               gsap.to(dot, {
                 xOffset: 0,

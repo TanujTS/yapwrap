@@ -61,14 +61,14 @@ export function AuthForm() {
           ? await authClient.signIn.email({
               email,
               password,
-              callbackURL: `${baseUrl}/`,
+              callbackURL: `${baseUrl}/dashboard`,
               rememberMe,
             })
           : await authClient.signUp.email({
               email,
               password,
               name: name.trim() || email.split("@")[0] || "Yapwrap user",
-              callbackURL: `${baseUrl}/`,
+              callbackURL: `${baseUrl}/dashboard`,
             })
 
       if (result.error) {
@@ -79,7 +79,7 @@ export function AuthForm() {
       }
 
       toast.success(mode === "sign-in" ? "Signed in." : "Account created.")
-      router.push("/")
+      router.push("/dashboard")
       router.refresh()
     } catch {
       const message = "Authentication failed. Please try again."
@@ -97,9 +97,9 @@ export function AuthForm() {
     try {
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: `${baseUrl}/`,
+        callbackURL: `${baseUrl}/dashboard`,
         errorCallbackURL: `${baseUrl}/auth`,
-        newUserCallbackURL: `${baseUrl}/`,
+        newUserCallbackURL: `${baseUrl}/dashboard`,
       })
 
       if (result.error) {
