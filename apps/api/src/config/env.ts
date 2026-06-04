@@ -11,7 +11,10 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   LOG_LEVEL: z.string().optional(),
   LOGS_DIR: z.string().optional(),
-  WEB_URL: z.string().optional(),
+  WEB_URL: z.string(),
+  AUTH_BASE_URL: z.url(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);

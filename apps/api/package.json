@@ -5,9 +5,10 @@
   "private": true,
   "scripts": {
     "dev": "bun run --env-file=../../.env --watch src/index.ts",
-    "build": "bun build src/index.ts --outdir dist",
+    "build": "bun build src/index.ts --outdir dist --target=bun --packages external",
     "start": "bun run dist/index.js",
-    "check-types": "tsc -p tsconfig.json --noEmit"
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
     "@types/bun": "latest",
