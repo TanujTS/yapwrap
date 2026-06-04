@@ -5,11 +5,23 @@ import { useActionItems, useUpdateActionItemStatus, useDeleteActionItem } from "
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2Icon, CircleIcon, LoaderCircleIcon, ListTodoIcon, CalendarDaysIcon, Trash2Icon } from "lucide-react"
+import { CheckCircle2Icon, CircleIcon, LoaderCircleIcon, ListTodoIcon, CalendarDaysIcon, Trash2Icon, BellIcon, AlertTriangleIcon, ClockIcon } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "sonner"
 import Link from "next/link"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { ActionItemModal } from "../meetings/[id]/components/action-item-modal"
+import type { ActionItem } from "@/lib/api"
+
+function getDueStatus(item: ActionItem): "overdue" | "due-soon" | null {
+  if (!item.dueDate || item.status === "COMPLETED") return null
+  const now = new Date()
+  const due = new Date(item.dueDate)
+  if (due < now) return "overdue"
+  const diffMs = due.getTime() - now.getTime()
+  if (diffMs < 24 * 60 * 60 * 1000) return "due-soon"
+  return null
+}
 
 export default function ActionItemsPage() {
   const { data: actionItems, isLoading, isError } = useActionItems()
@@ -17,6 +29,7 @@ export default function ActionItemsPage() {
   const deleteActionItem = useDeleteActionItem()
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [editItem, setEditItem] = useState<ActionItem | null>(null)
 
   const toggleStatus = (id: string, currentStatus: string) => {
     setUpdatingId(id)
@@ -98,7 +111,7 @@ export default function ActionItemsPage() {
                 const isUpdating = updatingId === item.id
                 return (
                   <div key={item.id} className={`group relative flex items-start gap-4 rounded-xl border p-4 transition-colors ${isCompleted ? 'bg-muted/30 border-muted' : 'bg-card hover:bg-muted/10'}`}>
-                    <button 
+                    <button
                       className="mt-0.5 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
                       onClick={() => toggleStatus(item.id, item.status)}
                       disabled={isUpdating}
@@ -111,7 +124,10 @@ export default function ActionItemsPage() {
                         <CircleIcon className="size-5" />
                       )}
                     </button>
-                    <div className="flex flex-col flex-1 gap-1.5">
+                    <div
+                      className="flex flex-col flex-1 gap-1.5 cursor-pointer"
+                      onClick={() => setEditItem(item)}
+                    >
                       <p className={`font-medium leading-none ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                         {item.task}
                       </p>
@@ -124,6 +140,24 @@ export default function ActionItemsPage() {
                         {item.dueDate && (
                           <Badge variant="outline" className="text-xs font-normal bg-background">
                             📅 {format(new Date(item.dueDate), 'MMM d, yyyy')}
+                          </Badge>
+                        )}
+                        {getDueStatus(item) === "overdue" && (
+                          <Badge variant="destructive" className="text-xs font-normal">
+                            <AlertTriangleIcon className="mr-1 size-3" />
+                            Overdue
+                          </Badge>
+                        )}
+                        {getDueStatus(item) === "due-soon" && (
+                          <Badge className="text-xs font-normal bg-amber-500/10 text-amber-600 border-amber-500/20">
+                            <ClockIcon className="mr-1 size-3" />
+                            Due soon
+                          </Badge>
+                        )}
+                        {item.reminderOffset && item.reminderOffset !== "none" && (
+                          <Badge variant="outline" className="text-xs font-normal">
+                            <BellIcon className="mr-1 size-3" />
+                            Reminder set
                           </Badge>
                         )}
                         <Badge variant="outline" className="text-xs font-normal border-primary/20 text-primary/80">
@@ -149,6 +183,15 @@ export default function ActionItemsPage() {
           )}
         </CardContent>
       </Card>
+
+      {editItem && (
+        <ActionItemModal
+          isOpen={!!editItem}
+          onClose={() => setEditItem(null)}
+          meetingId={editItem.meetingId}
+          editItem={editItem}
+        />
+      )}
     </div>
   )
 }

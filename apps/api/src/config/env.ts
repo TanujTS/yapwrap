@@ -16,6 +16,9 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY is required"),
+  REDIS_URL: z.string(),
+  SMTP_USER: z.string(),
+  SMTP_PASS: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);

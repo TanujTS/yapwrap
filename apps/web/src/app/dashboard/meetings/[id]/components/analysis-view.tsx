@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { SparklesIcon, CheckIcon, WrenchIcon, CheckCircle2Icon, ListTodoIcon, CircleIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { SparklesIcon, CheckIcon, WrenchIcon, CheckCircle2Icon, ListTodoIcon, CircleIcon, PlusIcon, Trash2Icon, AlertTriangleIcon, ClockIcon, BellIcon } from "lucide-react"
 import { motion } from "motion/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,16 @@ function formatTranscriptTimestamp(ts: string) {
     return `${totalMins.toString().padStart(2, "0")}:${parts[2]}`
   }
   return ts
+}
+
+function getDueStatus(item: ActionItem): "overdue" | "due-soon" | null {
+  if (!item.dueDate || item.status === "COMPLETED") return null
+  const now = new Date()
+  const due = new Date(item.dueDate)
+  if (due < now) return "overdue"
+  const diffMs = due.getTime() - now.getTime()
+  if (diffMs < 24 * 60 * 60 * 1000) return "due-soon"
+  return null
 }
 
 function CitationBadge({ citations }: { citations: Citation[] }) {
@@ -66,6 +76,7 @@ export function AnalysisView({ analysis, meetingId }: { analysis: MeetingAnalysi
   const deleteActionItem = useDeleteActionItem()
   const [selectedItem, setSelectedItem] = useState<GeneratedActionItem | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [editItem, setEditItem] = useState<ActionItem | null>(null)
 
   const handleAcceptActionItem = (item: GeneratedActionItem) => {
     setSelectedItem(item)
@@ -94,11 +105,15 @@ export function AnalysisView({ analysis, meetingId }: { analysis: MeetingAnalysi
         isLoading={deleteActionItem.isPending}
       />
       <ActionItemModal
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
+        isOpen={!!selectedItem || !!editItem}
+        onClose={() => {
+          setSelectedItem(null)
+          setEditItem(null)
+        }}
         meetingId={meetingId}
         analysisId={analysis.id}
         initialData={selectedItem}
+        editItem={editItem}
       />
 
       {/* Top Section: Executive Summary & Action Items */}
@@ -201,11 +216,36 @@ export function AnalysisView({ analysis, meetingId }: { analysis: MeetingAnalysi
                 ) : (
                   <CircleIcon className="size-5 text-muted-foreground shrink-0" />
                 )}
-                <div className="flex flex-col min-w-0 flex-1">
+                <div 
+                  className="flex flex-col min-w-0 flex-1 cursor-pointer"
+                  onClick={() => setEditItem(item)}
+                >
                   <p className={`text-sm font-medium truncate ${item.status === 'COMPLETED' ? 'line-through text-muted-foreground' : ''}`}>
                     {item.task}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">{item.assignee || 'Unassigned'}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <p className="text-[10px] text-muted-foreground">{item.assignee || 'Unassigned'}</p>
+                    {item.dueDate && (
+                      <Badge variant="outline" className="text-[9px] font-normal py-0 h-4 bg-background">
+                        📅 {item.dueDate.split('T')[0]}
+                      </Badge>
+                    )}
+                    {getDueStatus(item) === "overdue" && (
+                      <Badge variant="destructive" className="text-[9px] font-normal py-0 h-4">
+                        <AlertTriangleIcon className="mr-0.5 size-2.5" /> Overdue
+                      </Badge>
+                    )}
+                    {getDueStatus(item) === "due-soon" && (
+                      <Badge className="text-[9px] font-normal py-0 h-4 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                        <ClockIcon className="mr-0.5 size-2.5" /> Due soon
+                      </Badge>
+                    )}
+                    {item.reminderOffset && item.reminderOffset !== "none" && (
+                      <Badge variant="outline" className="text-[9px] font-normal py-0 h-4">
+                        <BellIcon className="mr-0.5 size-2.5" /> Reminder set
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <Button
                   size="icon"

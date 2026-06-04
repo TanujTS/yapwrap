@@ -229,6 +229,7 @@ export const actionItem = pgTable(
       .default("PENDING")
       .notNull(),
     dueDate: timestamp("due_date"),
+    reminderOffset: text("reminder_offset").default("none").notNull(),
     citations: jsonb("citations")
       .$type<Citation[]>()
       .notNull()

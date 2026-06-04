@@ -74,6 +74,15 @@ export const api = {
       apiFetch<{ success: boolean }>(`/api/action-items/${id}`, {
         method: "DELETE",
       }),
+
+    get: (id: string) =>
+      apiFetch<ActionItem>(`/api/action-items/${id}`),
+
+    update: (id: string, data: UpdateActionItemPayload) =>
+      apiFetch<ActionItem>(`/api/action-items/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
   },
 };
 
@@ -137,6 +146,8 @@ export type MeetingAnalysis = {
   createdAt: string;
 };
 
+export type ReminderOffset = "none" | "15min" | "1h" | "1d" | "2d" | "1w";
+
 export type ActionItem = {
   id: string;
   meetingId: string;
@@ -145,6 +156,7 @@ export type ActionItem = {
   assignee?: string;
   status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
   dueDate?: string;
+  reminderOffset: ReminderOffset;
   citations: Citation[];
 };
 
@@ -154,5 +166,13 @@ export type CreateActionItemPayload = {
   task: string;
   assignee?: string;
   dueDate?: string;
+  reminderOffset?: ReminderOffset;
   citations?: Citation[];
+};
+
+export type UpdateActionItemPayload = {
+  task?: string;
+  assignee?: string | null;
+  dueDate?: string | null;
+  reminderOffset?: ReminderOffset;
 };
