@@ -146,7 +146,7 @@ export type MeetingAnalysis = {
   createdAt: string;
 };
 
-export type ReminderOffset = "none" | "15min" | "1h" | "1d" | "2d" | "1w";
+export type ReminderOffset = "now" | "none" | "15min" | "1h" | "1d" | "2d" | "1w";
 
 export type ActionItem = {
   id: string;
