@@ -73,6 +73,48 @@ const analysisSchema: Schema = {
   required: ["summary"],
 };
 
+export async function getMeetingAnalysis(
+  req: AppRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const meetingId = req.params.meetingId as string;
+
+    if (!meetingId) {
+      throw new ApiError(400, "VALIDATION_ERROR", "Meeting ID is required");
+    }
+
+    // Check if meeting exists and belongs to user
+    const [foundMeeting] = await db
+      .select()
+      .from(meeting)
+      .where(and(eq(meeting.id, meetingId), eq(meeting.userId, req.user!.id)))
+      .limit(1);
+
+    if (!foundMeeting) {
+      throw new ApiError(404, "NOT_FOUND", "Meeting not found");
+    }
+
+    // Check if analysis exists
+    const [analysis] = await db
+      .select()
+      .from(meetingAnalysis)
+      .where(eq(meetingAnalysis.meetingId, meetingId))
+      .limit(1);
+
+    if (!analysis) {
+      responseOk(req, res, null);
+      return;
+    }
+
+    responseOk(req, res, analysis);
+  } catch (error) {
+    logger.error({ event: "meeting.get_analysis.error", error });
+    next(error);
+  }
+}
+
 export async function analyzeMeeting(
   req: AppRequest,
   res: Response,

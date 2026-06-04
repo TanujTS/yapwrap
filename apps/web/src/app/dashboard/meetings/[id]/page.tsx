@@ -17,7 +17,7 @@ import { motion } from "motion/react"
 import { useState } from "react"
 
 import { useMeeting } from "@/hooks/use-meetings"
-import { useAnalyzeMeeting } from "@/hooks/use-evaluation"
+import { useAnalyzeMeeting, useMeetingAnalysis } from "@/hooks/use-evaluation"
 import { AnalysisView } from "./components/analysis-view"
 import { ActionItemModal } from "./components/action-item-modal"
 import { Badge } from "@/components/ui/badge"
@@ -111,6 +111,7 @@ export default function MeetingDetailPage({
 }) {
   const { id } = use(params)
   const { data: meeting, isLoading, isError, error } = useMeeting(id)
+  const { data: analysis, isLoading: isLoadingAnalysis } = useMeetingAnalysis(id)
   const analyzeMeeting = useAnalyzeMeeting(id)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -137,6 +138,8 @@ export default function MeetingDetailPage({
   const uniqueSpeakers = [
     ...new Set(meeting.transcript.map((t) => t.speaker)),
   ]
+
+  const currentAnalysis = analyzeMeeting.data || analysis
 
   return (
     <div className="flex flex-col gap-6">
@@ -172,17 +175,17 @@ export default function MeetingDetailPage({
             <PlusIcon className="mr-2 size-4" />
             Add Action Item
           </Button>
-          <Button
-            onClick={() => analyzeMeeting.mutate()}
-            disabled={analyzeMeeting.isPending || !!analyzeMeeting.data}
-            variant={analyzeMeeting.data ? "outline" : "default"}
+          <Button 
+            onClick={() => analyzeMeeting.mutate()} 
+            disabled={analyzeMeeting.isPending || !!currentAnalysis}
+            variant={currentAnalysis ? "outline" : "default"}
           >
             {analyzeMeeting.isPending ? (
               <LoaderCircleIcon className="mr-2 size-4 animate-spin" />
             ) : (
               <SparklesIcon className="mr-2 size-4" />
             )}
-            {analyzeMeeting.data ? "Analyzed" : "Analyze with AI"}
+            {currentAnalysis ? "Analyzed" : "Analyze with AI"}
           </Button>
         </div>
       </motion.div>
@@ -197,8 +200,15 @@ export default function MeetingDetailPage({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.1 }}
           >
-            {analyzeMeeting.data ? (
-              <AnalysisView analysis={analyzeMeeting.data} meetingId={meeting.id} />
+            {isLoadingAnalysis ? (
+               <Card className="border-dashed bg-muted/20">
+                <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
+                  <LoaderCircleIcon className="size-6 animate-spin text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground mt-2">Checking for analysis...</p>
+                </CardContent>
+              </Card>
+            ) : currentAnalysis ? (
+              <AnalysisView analysis={currentAnalysis} meetingId={meeting.id} />
             ) : (
               <Card className="border-dashed bg-muted/20">
                 <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
@@ -210,12 +220,12 @@ export default function MeetingDetailPage({
                       No AI analysis yet
                     </p>
                     <p className="max-w-xs text-xs text-muted-foreground leading-relaxed">
-                      Transform this transcript into actionable insights. Extract decisions,
+                      Transform this transcript into actionable insights. Extract decisions, 
                       summaries, and tasks with one click.
                     </p>
                   </div>
-                  <Button
-                    className="mt-4"
+                  <Button 
+                    className="mt-4" 
                     size="sm"
                     onClick={() => analyzeMeeting.mutate()}
                     disabled={analyzeMeeting.isPending}

@@ -13,6 +13,20 @@ export const evaluationKeys = {
   meeting: (meetingId: string) => [...evaluationKeys.all, meetingId] as const,
 }
 
+export function useMeetingAnalysis(meetingId: string) {
+  return useQuery({
+    queryKey: evaluationKeys.meeting(meetingId),
+    queryFn: async () => {
+      const res = await api.evaluation.get(meetingId)
+      if (!res.success) {
+        throw new Error(res.error.message)
+      }
+      return res.data
+    },
+    enabled: !!meetingId,
+  })
+}
+
 export function useAnalyzeMeeting(meetingId: string) {
   const queryClient = useQueryClient()
 

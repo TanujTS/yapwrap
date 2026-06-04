@@ -45,6 +45,8 @@ export const api = {
       }),
   },
   evaluation: {
+    get: (meetingId: string) =>
+      apiFetch<MeetingAnalysis | null>(`/api/evaluation/${meetingId}`),
     analyze: (meetingId: string) =>
       apiFetch<MeetingAnalysis>(`/api/evaluation/${meetingId}`, {
         method: "POST",
