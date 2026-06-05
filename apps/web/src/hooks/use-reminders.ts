@@ -5,11 +5,11 @@ import { api } from "@/lib/api"
 
 export const reminderKeys = {
   all: ["reminders"] as const,
-  logs: (filters: { actionItemId?: string } = {}) => 
+  logs: (filters: { actionItemId?: string; status?: string } = {}) => 
     [...reminderKeys.all, "logs", filters] as const,
 }
 
-export function useReminderLogs(filters: { actionItemId?: string } = {}) {
+export function useReminderLogs(filters: { actionItemId?: string; status?: string } = {}) {
   return useQuery({
     queryKey: reminderKeys.logs(filters),
     queryFn: async () => {

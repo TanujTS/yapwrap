@@ -10,17 +10,17 @@ import { api, type CreateMeetingPayload } from "@/lib/api"
 export const meetingKeys = {
   all: ["meetings"] as const,
   lists: () => [...meetingKeys.all, "list"] as const,
-  list: (page: number, limit: number) =>
-    [...meetingKeys.lists(), { page, limit }] as const,
+  list: (page: number, limit: number, search?: string) =>
+    [...meetingKeys.lists(), { page, limit, search }] as const,
   details: () => [...meetingKeys.all, "detail"] as const,
   detail: (id: string) => [...meetingKeys.details(), id] as const,
 }
 
-export function useMeetings(page = 1, limit = 20) {
+export function useMeetings(page = 1, limit = 20, search?: string) {
   return useQuery({
-    queryKey: meetingKeys.list(page, limit),
+    queryKey: meetingKeys.list(page, limit, search),
     queryFn: async () => {
-      const res = await api.meetings.list(page, limit)
+      const res = await api.meetings.list(page, limit, search)
       if (!res.success) {
         throw new Error(res.error.message)
       }
@@ -49,6 +49,23 @@ export function useCreateMeeting() {
   return useMutation({
     mutationFn: async (data: CreateMeetingPayload) => {
       const res = await api.meetings.create(data)
+      if (!res.success) {
+        throw new Error(res.error.message)
+      }
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: meetingKeys.lists() })
+    },
+  })
+}
+
+export function useDeleteMeeting() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.meetings.delete(id)
       if (!res.success) {
         throw new Error(res.error.message)
       }

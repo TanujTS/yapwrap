@@ -16,7 +16,9 @@ import {
 import { motion } from "motion/react"
 import { useState } from "react"
 
-import { useMeeting } from "@/hooks/use-meetings"
+import { useRouter } from "next/navigation"
+
+import { useMeeting, useDeleteMeeting } from "@/hooks/use-meetings"
 import { useAnalyzeMeeting, useMeetingAnalysis } from "@/hooks/use-evaluation"
 import { AnalysisView } from "./components/analysis-view"
 import { ActionItemModal } from "./components/action-item-modal"
@@ -110,9 +112,11 @@ export default function MeetingDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
+  const router = useRouter()
   const { data: meeting, isLoading, isError, error } = useMeeting(id)
   const { data: analysis, isLoading: isLoadingAnalysis } = useMeetingAnalysis(id)
   const analyzeMeeting = useAnalyzeMeeting(id)
+  const deleteMeeting = useDeleteMeeting()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   if (isLoading) {
@@ -171,6 +175,19 @@ export default function MeetingDetailPage({
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (confirm("Are you sure you want to delete this meeting?")) {
+                deleteMeeting.mutate(meeting.id, {
+                  onSuccess: () => router.push("/dashboard")
+                })
+              }
+            }}
+            disabled={deleteMeeting.isPending}
+          >
+            Delete
+          </Button>
           <Button variant="outline" onClick={() => setIsModalOpen(true)}>
             <PlusIcon className="mr-2 size-4" />
             Add Action Item

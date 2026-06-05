@@ -6,9 +6,20 @@ import { Badge } from "@/components/ui/badge"
 import { LoaderCircleIcon, BellIcon, CheckCircle2Icon, XCircleIcon, MailIcon, CalendarIcon, UserIcon, ArrowUpRightIcon } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
+import { useState } from "react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function RemindersDashboardPage() {
-  const { data: logs, isLoading, isError } = useReminderLogs()
+  const [statusFilter, setStatusFilter] = useState<string>("ALL")
+  const { data: logs, isLoading, isError } = useReminderLogs({
+    status: statusFilter === "ALL" ? undefined : statusFilter
+  })
 
   const successCount = logs?.filter(l => l.status.toLowerCase() === 'sent').length || 0
   const failedCount = logs?.filter(l => l.status.toLowerCase() === 'failed').length || 0
@@ -16,7 +27,7 @@ export default function RemindersDashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex size-12 items-center justify-center rounded-2xl bg-primary/10 shadow-sm border border-primary/20 shrink-0">
             <BellIcon className="size-6 text-primary" />
@@ -27,6 +38,20 @@ export default function RemindersDashboardPage() {
               Monitor automated email delivery and notification history
             </p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Status</span>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Logs</SelectItem>
+              <SelectItem value="sent">Sent</SelectItem>
+              <SelectItem value="failed">Failed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

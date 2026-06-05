@@ -4,6 +4,7 @@ import {
   createMeeting,
   getMeeting,
   listMeetings,
+  deleteMeeting,
 } from "./meetings.controller";
 
 export const meetingsModule = Router();
@@ -63,6 +64,9 @@ meetingsModule.post("/", createMeeting);
  *       - in: query
  *         name: limit
  *         schema: { type: integer, default: 20 }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: A list of meetings
@@ -85,3 +89,20 @@ meetingsModule.get("/", listMeetings);
  *         description: Detailed meeting object
  */
 meetingsModule.get("/:id", getMeeting);
+
+/**
+ * @openapi
+ * /api/meetings/{id}:
+ *   delete:
+ *     summary: Delete a meeting
+ *     tags: [Meetings]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: Meeting deleted successfully
+ */
+meetingsModule.delete("/:id", deleteMeeting);

@@ -11,6 +11,13 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { ActionItemModal } from "../meetings/[id]/components/action-item-modal"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { ActionItem } from "@/lib/api"
 
 function getDueStatus(item: ActionItem): "overdue" | "due-soon" | null {
@@ -24,7 +31,10 @@ function getDueStatus(item: ActionItem): "overdue" | "due-soon" | null {
 }
 
 export default function ActionItemsPage() {
-  const { data: actionItems, isLoading, isError } = useActionItems()
+  const [statusFilter, setStatusFilter] = useState<string>("ALL")
+  const { data: actionItems, isLoading, isError } = useActionItems({ 
+    status: statusFilter === "ALL" ? undefined : statusFilter 
+  })
   const updateStatus = useUpdateActionItemStatus()
   const deleteActionItem = useDeleteActionItem()
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -72,15 +82,32 @@ export default function ActionItemsPage() {
         variant="destructive"
         isLoading={deleteActionItem.isPending}
       />
-      <div className="flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
-          <ListTodoIcon className="size-5 text-primary" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+            <ListTodoIcon className="size-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="font-heading text-2xl font-semibold">Action Items</h1>
+            <p className="text-sm text-muted-foreground">
+              Track and manage your tasks across all meetings
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-heading text-2xl font-semibold">Action Items</h1>
-          <p className="text-sm text-muted-foreground">
-            Track and manage your tasks across all meetings
-          </p>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Status</span>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Tasks</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

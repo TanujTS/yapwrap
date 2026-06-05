@@ -12,9 +12,19 @@ import {
 } from "lucide-react"
 import { motion } from "motion/react"
 
-import { useMeetings } from "@/hooks/use-meetings"
+import { useState, useEffect } from "react"
+import { useMeetings, useDeleteMeeting } from "@/hooks/use-meetings"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { TrashIcon, SearchIcon } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Card,
   CardContent,
@@ -56,6 +66,7 @@ function MeetingCard({
   index: number
 }) {
   const router = useRouter()
+  const deleteMutation = useDeleteMeeting()
 
   return (
     <motion.div
@@ -78,9 +89,25 @@ function MeetingCard({
                 {formatDate(meeting.meetingDate)}
               </CardDescription>
             </div>
-            <Badge variant="outline" className="shrink-0 text-xs">
-              {formatRelative(meeting.meetingDate)}
-            </Badge>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge variant="outline" className="text-xs">
+                {formatRelative(meeting.meetingDate)}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (confirm("Are you sure you want to delete this meeting?")) {
+                    deleteMutation.mutate(meeting.id)
+                  }
+                }}
+                disabled={deleteMutation.isPending}
+              >
+                <TrashIcon className="size-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -158,7 +185,20 @@ function EmptyState() {
 }
 
 export default function DashboardPage() {
-  const { data, isLoading, isError, error } = useMeetings()
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(20)
+  const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 500)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const { data, isLoading, isError, error } = useMeetings(page, limit, debouncedSearch)
+
+  const totalCount = data?.meta?.count as number | undefined
+  const totalPages = totalCount ? Math.ceil(totalCount / limit) : 1
 
   return (
     <div className="flex flex-col gap-6">
@@ -175,6 +215,40 @@ export default function DashboardPage() {
             New Meeting
           </Link>
         </Button>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search meetings..."
+            className="pl-9"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Per page</span>
+          <Select
+            value={String(limit)}
+            onValueChange={(val) => {
+              setLimit(Number(val))
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {isLoading ? (
@@ -194,6 +268,30 @@ export default function DashboardPage() {
           {data.data.map((meeting, index) => (
             <MeetingCard key={meeting.id} meeting={meeting} index={index} />
           ))}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -12,7 +12,10 @@ async function apiFetch<T = unknown>(
 
   let url = `${API_BASE}${path}`;
   if (params) {
-    const searchParams = new URLSearchParams(params);
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([_, v]) => v !== undefined)
+    ) as Record<string, string>;
+    const searchParams = new URLSearchParams(cleanParams);
     url += `?${searchParams.toString()}`;
   }
 
@@ -31,10 +34,11 @@ async function apiFetch<T = unknown>(
 
 export const api = {
   meetings: {
-    list: (page = 1, limit = 20) =>
-      apiFetch<MeetingListItem[]>("/api/meetings", {
-        params: { page: String(page), limit: String(limit) },
-      }),
+    list: (page = 1, limit = 20, search?: string) => {
+      const params: Record<string, string> = { page: String(page), limit: String(limit) };
+      if (search) params.search = search;
+      return apiFetch<MeetingListItem[]>("/api/meetings", { params });
+    },
 
     get: (id: string) => apiFetch<MeetingDetail>(`/api/meetings/${id}`),
 
@@ -42,6 +46,11 @@ export const api = {
       apiFetch<MeetingDetail>("/api/meetings", {
         method: "POST",
         body: JSON.stringify(data),
+      }),
+
+    delete: (id: string) =>
+      apiFetch<{ success: boolean }>(`/api/meetings/${id}`, {
+        method: "DELETE",
       }),
   },
   evaluation: {
@@ -85,7 +94,7 @@ export const api = {
       }),
   },
   reminders: {
-    listLogs: (params?: { actionItemId?: string }) =>
+    listLogs: (params?: { actionItemId?: string; status?: string }) =>
       apiFetch<ReminderLog[]>("/api/reminders/logs", {
         params: params as Record<string, string>,
       }),

@@ -1,5 +1,5 @@
 import type { NextFunction, Response } from "express";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, ilike } from "drizzle-orm";
 import { db } from "../../db";
 import { reminderLog, actionItem, meeting } from "../../db/schema";
 import type { AppRequest } from "../../types";
@@ -12,7 +12,7 @@ export async function listReminderLogs(
   next: NextFunction,
 ) {
   try {
-    const { actionItemId } = req.query;
+    const { actionItemId, status } = req.query;
 
     const query = db
       .select({
@@ -29,7 +29,8 @@ export async function listReminderLogs(
       .where(
         and(
           eq(meeting.userId, req.user!.id),
-          actionItemId ? eq(reminderLog.actionItemId, actionItemId as string) : undefined
+          actionItemId ? eq(reminderLog.actionItemId, actionItemId as string) : undefined,
+          status ? ilike(reminderLog.status, `%${status as string}%`) : undefined
         )
       )
       .orderBy(desc(reminderLog.sentAt));
