@@ -1,6 +1,6 @@
-# Yapwrap - Hintro Meeting Intelligence Assignment
+# Yapwrap 
 
-Yapwrap is an AI-powered meeting intelligence service built for the Hintro Engineering Internship assignment. It extracts insights, decisions, and action items from meeting transcripts using the Gemini SDK with strict structural grounding, while managing follow-up reminders via BullMQ and Nodemailer.
+Yapwrap is an AI-powered meeting intelligence service. It extracts insights, decisions, and action items from meeting transcripts using the Gemini SDK with strict structural grounding, while managing follow-up reminders via BullMQ and Nodemailer.
 
 ## Core Features
 - **Meeting Management**: Upload transcripts and organize meeting metadata.
@@ -28,30 +28,30 @@ Yapwrap is an AI-powered meeting intelligence service built for the Hintro Engin
 - Docker & Docker Compose (for local Redis/PostgreSQL)
 
 ### 2. Environment Variables
-Copy `.env.example` to `.env` in the root directory. You must configure the following:
+This project requires two `.env` files.
 
+**Root Level (`/.env`)**
+This configures the backend API and background workers.
 ```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/yapwrap"
-
-# Redis
-REDIS_URL="redis://localhost:6379"
-
-# API & Auth
-PORT=3001
-AUTH_BASE_URL="http://localhost:3001"
+LOG_LEVEL="debug"
+DATABASE_URL="postgresql://user:password@hostname/dbname?sslmode=require"
 BETTER_AUTH_SECRET="super-secret-key-change-me"
-NEXT_PUBLIC_API_URL="http://localhost:3001"
-
-# Gemini AI
+BETTER_AUTH_URL="http://localhost:3000"
+AUTH_BASE_URL="http://localhost:8000"
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+WEB_URL="http://localhost:3000"
 GEMINI_API_KEY="your-google-gemini-api-key"
+REDIS_URL="redis://localhost:6379"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+```
 
-# Nodemailer SMTP Configuration
-SMTP_HOST="smtp.example.com"
-SMTP_PORT="587"
-SMTP_USER="your-email@example.com"
-SMTP_PASS="your-email-password"
-EMAIL_FROM="yapwrap@example.com"
+**Frontend Level (`/apps/web/.env`)**
+This configures the Next.js application.
+```env
+NEXT_PUBLIC_API_URL="http://localhost:8000"
+NEXT_PUBLIC_WEB_URL="http://localhost:3000"
 ```
 
 ### 3. Start Local Services
@@ -81,13 +81,13 @@ bun dev
 ## 📚 API Documentation
 
 Once the backend is running, the **Swagger OpenAPI documentation** is available at:
-👉 **[http://localhost:3001/api/docs](http://localhost:3001/api/docs)**
+👉 **[http://localhost:8000/api/docs](http://localhost:8000/api/docs)**
 
 ### API Usage Examples
 
 **1. Create a Meeting**
 ```bash
-curl -X POST http://localhost:3001/api/meetings \
+curl -X POST http://localhost:8000/api/meetings \
   -H "Content-Type: application/json" \
   -H "Cookie: better-auth.session-token=..." \
   -d '{
@@ -102,13 +102,13 @@ curl -X POST http://localhost:3001/api/meetings \
 
 **2. Trigger AI Analysis**
 ```bash
-curl -X POST http://localhost:3001/api/meetings/{meeting_id}/analyze \
+curl -X POST http://localhost:8000/api/meetings/{meeting_id}/analyze \
   -H "Cookie: better-auth.session-token=..."
 ```
 
 **3. Get Evaluation Details**
 ```bash
-curl -X GET http://localhost:3001/api/evaluation
+curl -X GET http://localhost:8000/api/evaluation
 ```
 
 ---
@@ -119,23 +119,17 @@ The application is configured to run via a 2-stage Docker build, making it highl
 
 1. **Build the Docker Image:**
 ```sh
-docker build -t yapwrap .
+docker compose build --no-cache
 ```
 
 2. **Run the Container:**
 Pass the necessary environment variables explicitly at runtime.
 ```sh
-docker run -p 3000:3000 -p 3001:3001 \
-  -e DATABASE_URL="..." \
-  -e REDIS_URL="..." \
-  -e GEMINI_API_KEY="..." \
-  -e SMTP_HOST="..." \
-  ... \
-  yapwrap
+docker compose up -d
 ```
 
 ### Suggested Platforms
-- **API & Worker**: Render or Railway (ideal for Docker containers running background BullMQ threads).
+- **API & Worker**: Render or Railway (ideal for Docker containers running background BullMQ threads) / Amazon EC2 / Any other cloud VM provider
 - **Frontend**: Vercel (link directly to the `apps/web` folder).
 - **Database**: Neon (Serverless Postgres) or Supabase.
 - **Cache**: Upstash Redis.

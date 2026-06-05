@@ -4,7 +4,7 @@ This document outlines the primary technical choices made during the development
 
 ## 1. Monorepo Structure & Package Management
 **Decision:** Used **Turborepo** with **Bun** for a fullstack monorepo setup.
-- **Why:** Keeps the frontend (Next.js) and backend (Express) closely aligned, allowing shared types and unified dependency management. Bun was chosen for its incredibly fast package installation and native TypeScript execution.
+- **Why:** Keeps the frontend (Next.js) and backend (Express) closely aligned and makes, allowing shared types and unified dependency management. Bun was chosen for its incredibly fast package installation and native TypeScript execution.
 - **Alternatives Considered:** Separate repositories, standard pnpm/yarn workspaces.
 - **Trade-offs:** Monorepos can become complex to deploy if caching isn't configured correctly, but Turborepo makes pipeline execution highly efficient.
 
@@ -39,3 +39,8 @@ This document outlines the primary technical choices made during the development
 ## 7. Global Error Handling & API Responses
 **Decision:** Unified standard JSON response wrapper with automatic Trace IDs.
 - **Why:** Consistent API responses (`{ success, data, error, traceId }`) make frontend consumption predictable. Trace IDs are generated in middleware and attached to both the response and the Pino logger to make debugging across distributed logs trivial.
+
+## 8. Client-Side Data Fetching
+**Decision:** Used **TanStack Query (React Query)**.
+- **Why:** TanStack Query handles complex state management related to asynchronous data natively. It manages caching, invalidation, loading states, and automatic retries. This is vastly superior to `useEffect` data fetching and drastically reduces boilerplate.
+- **Alternatives Considered:** SWR, standard React `useEffect`/`useState`.
