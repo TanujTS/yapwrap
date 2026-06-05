@@ -26,7 +26,21 @@ app.use(express.json({ limit: "1mb" }));
 app.use(traceMiddleware);
 app.use(httpLogger);
 
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      url: "/api/docs/swagger.json",
+    },
+    customCss: ".swagger-ui { font-family: sans-serif; }",
+    customSiteTitle: "Yapwrap API Documentation",
+  })
+);
+app.get("/api/docs/swagger.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
 app.use("/api/meetings", meetingsModule);
 app.use("/api/action-items", actionItemsModule);
 app.use("/api/evaluation", evaluationModule);
