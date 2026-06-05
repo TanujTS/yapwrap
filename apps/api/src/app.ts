@@ -1,4 +1,6 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 import { actionItemsModule } from "./modules/action-items/action-items.routes";
 import { evaluationModule } from "./modules/evaluation/evaluation.routes";
 import { meetingsModule } from "./modules/meetings/meetings.routes";
@@ -24,6 +26,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(traceMiddleware);
 app.use(httpLogger);
 
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/meetings", meetingsModule);
 app.use("/api/action-items", actionItemsModule);
 app.use("/api/evaluation", evaluationModule);
