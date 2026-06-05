@@ -1,8 +1,20 @@
 import { Router } from "express";
 import { requireAuth } from "../../middlewares/auth";
-import { analyzeMeeting, getMeetingAnalysis } from "./evaluation.controller";
+import { analyzeMeeting, getMeetingAnalysis, getEvaluationDetails } from "./evaluation.controller";
 
 export const evaluationModule = Router();
+
+/**
+ * @openapi
+ * /api/evaluation:
+ *   get:
+ *     summary: Get evaluation details for the assignment
+ *     tags: [Evaluation]
+ *     responses:
+ *       200:
+ *         description: Evaluation details
+ */
+evaluationModule.get("/", getEvaluationDetails);
 
 evaluationModule.use(requireAuth);
 

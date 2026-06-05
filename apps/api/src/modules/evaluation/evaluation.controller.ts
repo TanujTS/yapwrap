@@ -204,3 +204,33 @@ CRITICAL INSTRUCTIONS:
     next(error);
   }
 }
+
+export async function getEvaluationDetails(
+  req: AppRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const evaluationData = {
+      candidateName: "Tanuj Sharma",
+      email: env.CANDIDATE_EMAIL,
+      repositoryUrl: "https://github.com/TanujTS/yapwrap",
+      deployedUrl: "https://yapwrap.tanujts.me",
+      externalIntegration: "Nodemailer (SMTP Service)",
+      features: [
+        "Authentication",
+        "Meeting Management",
+        "AI Analysis",
+        "Grounding & Citation Requirement",
+        "Action Item Management",
+        "Overdue Detection",
+        "Reminder Scheduler",
+        "External Integration"
+      ]
+    };
+
+    responseOk(req, res, evaluationData);
+  } catch (error) {
+    next(error);
+  }
+}
