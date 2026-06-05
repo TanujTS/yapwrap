@@ -11,6 +11,7 @@ import {
   UserIcon,
 } from "lucide-react"
 import { toast } from "sonner"
+import { motion, AnimatePresence } from "motion/react"
 
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
@@ -18,7 +19,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldError, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 type AuthMode = "sign-in" | "sign-up"
 
@@ -117,46 +117,81 @@ export function AuthForm() {
   }
 
   return (
-    <Card className="w-full max-w-md bg-card/95 backdrop-blur" size="sm">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="w-full max-w-md"
+    >
+      <Card className="w-full bg-card/80 backdrop-blur-md shadow-2xl border-white/10 dark:border-white/5" size="sm">
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+        <CardContent>
         <form onSubmit={handleEmailAuth}>
           <FieldGroup>
-            <ToggleGroup
-              type="single"
-              value={mode}
-              onValueChange={(value) => value && setMode(value as AuthMode)}
-              variant="outline"
-              spacing={0}
-              className="w-full"
-            >
-              <ToggleGroupItem value="sign-in" className="flex-1">
+            <div className="relative flex w-full rounded-lg bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => setMode("sign-in")}
+                className={`relative z-10 flex-1 py-1.5 text-sm font-medium transition-colors ${
+                  mode === "sign-in" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
                 Sign in
-              </ToggleGroupItem>
-              <ToggleGroupItem value="sign-up" className="flex-1">
+                {mode === "sign-in" && (
+                  <motion.div
+                    layoutId="auth-mode-pill"
+                    className="absolute inset-0 -z-10 rounded-md bg-background shadow-sm"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("sign-up")}
+                className={`relative z-10 flex-1 py-1.5 text-sm font-medium transition-colors ${
+                  mode === "sign-up" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
                 Create account
-              </ToggleGroupItem>
-            </ToggleGroup>
+                {mode === "sign-up" && (
+                  <motion.div
+                    layoutId="auth-mode-pill"
+                    className="absolute inset-0 -z-10 rounded-md bg-background shadow-sm"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+              </button>
+            </div>
 
-            {mode === "sign-up" ? (
-              <Field>
-                <FieldLabel htmlFor="name">
-                  <UserIcon data-icon="inline-start" />
-                  Name
-                </FieldLabel>
-                <Input
-                  id="name"
-                  name="name"
-                  autoComplete="name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  disabled={isSubmitting || isGoogleSubmitting}
-                />
-              </Field>
-            ) : null}
+            <AnimatePresence mode="wait">
+              {mode === "sign-up" && (
+                <motion.div
+                  key="name-field"
+                  initial={{ opacity: 0, height: 0, overflow: "hidden" }}
+                  animate={{ opacity: 1, height: "auto", overflow: "visible" }}
+                  exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Field>
+                    <FieldLabel htmlFor="name">
+                      <UserIcon data-icon="inline-start" />
+                      Name
+                    </FieldLabel>
+                    <Input
+                      id="name"
+                      name="name"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      disabled={isSubmitting || isGoogleSubmitting}
+                    />
+                  </Field>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <Field data-invalid={!!error}>
               <FieldLabel htmlFor="email">
@@ -241,6 +276,7 @@ export function AuthForm() {
           By continuing, you agree to keep meetings moving without chasing threads.
         </p>
       </CardFooter>
-    </Card>
+      </Card>
+    </motion.div>
   )
 }

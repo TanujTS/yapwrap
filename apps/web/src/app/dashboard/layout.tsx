@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 import {
   CalendarDaysIcon,
   LayoutDashboardIcon,
@@ -11,14 +12,26 @@ import {
   XIcon,
   ListTodoIcon,
   BellIcon,
+  MoonIcon,
+  SunIcon,
+  MoreVerticalIcon,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "motion/react"
 
 import { authClient } from "@/lib/auth-client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 function initials(name?: string | null, email?: string | null) {
   const value = name || email || "Y"
@@ -53,18 +66,25 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
   const router = useRouter()
+  const pathname = usePathname()
+  const { theme, setTheme } = useTheme()
+
   const { data: session, isPending } = authClient.useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/auth")
+    }
+  }, [isPending, session, router])
+
   if (!isPending && !session) {
-    router.push("/auth")
     return null
   }
 
   return (
-    <div className="flex min-h-svh bg-background">
+    <div className="flex h-svh overflow-hidden bg-background">
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-2 px-5">
@@ -116,45 +136,75 @@ export default function DashboardLayout({
               </div>
             </div>
           ) : session ? (
-            <div className="flex items-center gap-3">
-              <Avatar size="sm">
-                {session.user.image ? (
-                  <AvatarImage
-                    src={session.user.image}
-                    alt={session.user.name || "User"}
-                  />
-                ) : null}
-                <AvatarFallback>
-                  {initials(session.user.name, session.user.email)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-1 flex-col overflow-hidden">
-                <span className="truncate text-sm font-medium text-sidebar-foreground">
-                  {session.user.name}
-                </span>
-                <span className="truncate text-xs text-sidebar-foreground/60">
-                  {session.user.email}
-                </span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 text-sidebar-foreground/60 hover:text-sidebar-foreground"
-                onClick={async () => {
-                  await authClient.signOut()
-                  router.push("/")
-                }}
-              >
-                <LogOutIcon className="size-4" />
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+                  <Avatar size="sm">
+                    {session.user.image ? (
+                      <AvatarImage
+                        src={session.user.image}
+                        alt={session.user.name || "User"}
+                      />
+                    ) : null}
+                    <AvatarFallback>
+                      {initials(session.user.name, session.user.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-1 flex-col overflow-hidden">
+                    <span className="truncate text-sm font-medium text-sidebar-foreground">
+                      {session.user.name}
+                    </span>
+                    <span className="truncate text-xs text-sidebar-foreground/60">
+                      {session.user.email}
+                    </span>
+                  </div>
+                  <MoreVerticalIcon className="h-4 w-4 text-sidebar-foreground/50" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56" side="right" sideOffset={8}>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="flex items-center justify-between px-2 py-1.5 text-sm">
+                  <span>Theme</span>
+                  <div className="flex items-center gap-1 rounded-md border p-0.5">
+                    <button
+                      onClick={() => setTheme("light")}
+                      className={`rounded-sm p-1 transition-colors ${
+                        theme === "light" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50"
+                      }`}
+                    >
+                      <SunIcon className="size-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setTheme("dark")}
+                      className={`rounded-sm p-1 transition-colors ${
+                        theme === "dark" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50"
+                      }`}
+                    >
+                      <MoonIcon className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                  onClick={async () => {
+                    await authClient.signOut()
+                    router.push("/auth")
+                  }}
+                >
+                  <LogOutIcon className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : null}
         </div>
       </aside>
 
       {/* Mobile header */}
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-border px-4 lg:hidden">
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <header className="flex h-14 items-center justify-between border-b border-border px-4 lg:hidden shrink-0">
           <Link
             href="/"
             className="flex items-center gap-2 font-heading text-lg font-medium"
@@ -178,41 +228,49 @@ export default function DashboardLayout({
         </header>
 
         {/* Mobile nav overlay */}
-        {mobileMenuOpen && (
-          <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-sm lg:hidden">
-            <div className="flex h-14 items-center justify-between border-b border-border px-4">
-              <span className="font-heading text-lg font-medium">Menu</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <XIcon className="size-5" />
-              </Button>
-            </div>
-            <nav className="flex flex-col gap-1 p-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+              className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md lg:hidden"
+            >
+              <div className="flex h-14 items-center justify-between border-b border-border px-4">
+                <span className="font-heading text-lg font-medium">Menu</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground hover:bg-accent"
                 >
-                  <item.icon className="size-4" />
-                  {item.label}
-                </Link>
-              ))}
-              <div className="pt-3">
-                <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                  <Link href="/dashboard/meetings/new">
-                    <PlusIcon data-icon="inline-start" />
-                    New Meeting
-                  </Link>
+                  <XIcon className="size-5" />
                 </Button>
               </div>
-            </nav>
-          </div>
-        )}
+              <nav className="flex flex-col gap-1 p-4">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground hover:bg-accent"
+                  >
+                    <item.icon className="size-4" />
+                    {item.label}
+                  </Link>
+                ))}
+                <div className="pt-3">
+                  <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/dashboard/meetings/new">
+                      <PlusIcon data-icon="inline-start" />
+                      New Meeting
+                    </Link>
+                  </Button>
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto">

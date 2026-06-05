@@ -18,19 +18,19 @@ export default function RemindersDashboardPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 shadow-sm border border-primary/20">
+          <div className="hidden sm:flex size-12 items-center justify-center rounded-2xl bg-primary/10 shadow-sm border border-primary/20 shrink-0">
             <BellIcon className="size-6 text-primary" />
           </div>
           <div>
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">Reminders</h1>
-            <p className="text-muted-foreground font-medium">
+            <h1 className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-foreground">Reminders</h1>
+            <p className="text-sm md:text-base text-muted-foreground font-medium">
               Monitor automated email delivery and notification history
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="relative overflow-hidden border-none bg-muted/30 shadow-none">
           <CardContent className="p-6">
             <div className="flex flex-col gap-1">
@@ -102,8 +102,8 @@ export default function RemindersDashboardPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
+            <div className="overflow-x-auto pb-4">
+              <table className="w-full min-w-[600px] text-sm text-left">
                 <thead>
                   <tr className="bg-muted/30">
                     <th className="px-6 py-4 font-bold text-muted-foreground uppercase tracking-tighter text-[11px]">Status</th>
