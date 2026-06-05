@@ -128,7 +128,7 @@ export async function listMeetings(
       .from(meeting)
       .where(conditions);
 
-    const totalCount = total?.count ?? 0;
+    const totalCount = Number(total?.count ?? 0);
 
     logger.info({ event: "meetings.listed", userId: req.user!.id, count: meetings.length, total: totalCount, page });
 

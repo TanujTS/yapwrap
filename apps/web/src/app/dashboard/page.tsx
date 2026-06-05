@@ -284,12 +284,12 @@ export default function DashboardPage() {
             <MeetingCard key={meeting.id} meeting={meeting} index={index} />
           ))}
 
-          {totalPages > 1 && (
+          {totalPages > 0 && (
             <div className="flex items-center justify-center gap-2 pt-4">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === 1}
+                disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 Previous
@@ -300,7 +300,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === totalPages}
+                disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               >
                 Next
