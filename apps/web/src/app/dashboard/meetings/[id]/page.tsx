@@ -22,6 +22,7 @@ import { useMeeting, useDeleteMeeting } from "@/hooks/use-meetings"
 import { useAnalyzeMeeting, useMeetingAnalysis } from "@/hooks/use-evaluation"
 import { AnalysisView } from "./components/analysis-view"
 import { ActionItemModal } from "./components/action-item-modal"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -118,6 +119,7 @@ export default function MeetingDetailPage({
   const analyzeMeeting = useAnalyzeMeeting(id)
   const deleteMeeting = useDeleteMeeting()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   if (isLoading) {
     return <DetailSkeleton />
@@ -177,13 +179,7 @@ export default function MeetingDetailPage({
         <div className="flex items-center gap-3">
           <Button
             variant="destructive"
-            onClick={() => {
-              if (confirm("Are you sure you want to delete this meeting?")) {
-                deleteMeeting.mutate(meeting.id, {
-                  onSuccess: () => router.push("/dashboard")
-                })
-              }
-            }}
+            onClick={() => setIsConfirmOpen(true)}
             disabled={deleteMeeting.isPending}
           >
             Delete
@@ -379,11 +375,27 @@ export default function MeetingDetailPage({
       </div>
 
       {meeting && (
-        <ActionItemModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          meetingId={meeting.id}
-        />
+        <>
+          <ActionItemModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            meetingId={meeting.id}
+          />
+          <ConfirmDialog
+            isOpen={isConfirmOpen}
+            onClose={() => setIsConfirmOpen(false)}
+            onConfirm={() => {
+              deleteMeeting.mutate(meeting.id, {
+                onSuccess: () => router.push("/dashboard")
+              })
+            }}
+            title="Delete Meeting"
+            description="Are you sure you want to delete this meeting? This will also remove any generated transcripts and action items."
+            confirmText="Delete"
+            variant="destructive"
+            isLoading={deleteMeeting.isPending}
+          />
+        </>
       )}
     </div>
   )

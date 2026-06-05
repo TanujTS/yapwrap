@@ -14,6 +14,7 @@ import { motion } from "motion/react"
 
 import { useState, useEffect } from "react"
 import { useMeetings, useDeleteMeeting } from "@/hooks/use-meetings"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -67,6 +68,7 @@ function MeetingCard({
 }) {
   const router = useRouter()
   const deleteMutation = useDeleteMeeting()
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   return (
     <motion.div
@@ -99,9 +101,7 @@ function MeetingCard({
                 className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (confirm("Are you sure you want to delete this meeting?")) {
-                    deleteMutation.mutate(meeting.id)
-                  }
+                  setIsConfirmOpen(true)
                 }}
                 disabled={deleteMutation.isPending}
               >
@@ -126,6 +126,21 @@ function MeetingCard({
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={() => {
+          deleteMutation.mutate(meeting.id, {
+            onSuccess: () => setIsConfirmOpen(false),
+          })
+        }}
+        title="Delete Meeting"
+        description="Are you sure you want to delete this meeting? This will also remove any generated transcripts and action items."
+        confirmText="Delete"
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+      />
     </motion.div>
   )
 }
