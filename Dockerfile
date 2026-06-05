@@ -6,7 +6,8 @@ COPY apps/api/package.json ./
 RUN bun install
 
 COPY apps/api/ ./
-RUN bun run build 
+RUN bun run generate-swagger.ts
+RUN bun run build
 
 # Stage 2: Runtime
 FROM oven/bun:1.3-slim
