@@ -4,11 +4,15 @@ import { logger } from "../../logger";
 
 // Create the transporter — this is the SMTP connection config
 const transporter = nodemailer.createTransport({
-  service: "gmail",        // Shorthand — sets host/port/security automatically
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // Use STARTTLS
+  pool: true,
   auth: {
-    user: env.SMTP_USER,   // Your Gmail address
-    pass: env.SMTP_PASS,   // The 16-char App Password (NOT your Gmail password)
+    user: env.SMTP_USER,
+    pass: env.SMTP_PASS,
   },
+  connectionTimeout: 10000,
 });
 
 type ReminderEmailParams = {

@@ -10,6 +10,7 @@ import {
   MenuIcon,
   XIcon,
   ListTodoIcon,
+  BellIcon,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -39,6 +40,11 @@ const navItems = [
     label: "Action Items",
     href: "/dashboard/action-items",
     icon: ListTodoIcon,
+  },
+  {
+    label: "Reminders",
+    href: "/dashboard/reminders",
+    icon: BellIcon,
   }
 ]
 

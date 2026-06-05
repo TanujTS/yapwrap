@@ -84,9 +84,24 @@ export const api = {
         body: JSON.stringify(data),
       }),
   },
+  reminders: {
+    listLogs: (params?: { actionItemId?: string }) =>
+      apiFetch<ReminderLog[]>("/api/reminders/logs", {
+        params: params as Record<string, string>,
+      }),
+  },
 };
 
 // ---------- Types ----------
+
+export type ReminderLog = {
+  id: string;
+  sentTo: string;
+  status: string;
+  sentAt: string;
+  task: string;
+  meetingTitle: string;
+};
 
 export type TranscriptEntry = {
   timestamp: string;
