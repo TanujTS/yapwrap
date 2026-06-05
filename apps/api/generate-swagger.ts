@@ -4,6 +4,7 @@ import path from "path";
 
 const options: swaggerJsdoc.Options = {
   definition: {
+    openapi: "3.0.0",
     info: { title: "Yapwrap API", version: "1.0.0" },
     servers: [
       { url: "https://yapwrap-api.tanujts.me", description: "Production" },
