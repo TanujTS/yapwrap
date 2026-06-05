@@ -10,10 +10,21 @@ const __dirname = path.dirname(__filename);
 const getSwaggerSpec = () => {
   if (env.NODE_ENV === "production") {
     const swaggerPath = path.join(process.cwd(), "dist", "swagger.json");
+    console.log("📍 Current working directory:", process.cwd());
+    console.log("🔍 Looking for swagger.json at:", swaggerPath);
+    
     if (!fs.existsSync(swaggerPath)) {
+      console.error("❌ File not found!");
       throw new Error("swagger.json not found. Run generate-swagger.ts before starting.");
     }
-    return JSON.parse(fs.readFileSync(swaggerPath, "utf-8"));
+    
+    const content = fs.readFileSync(swaggerPath, "utf-8");
+    const parsed = JSON.parse(content);
+    const pathCount = Object.keys(parsed.paths || {}).length;
+    console.log(`✅ Loaded swagger.json with ${pathCount} paths`);
+    console.log("📋 Paths found:", Object.keys(parsed.paths || {}).slice(0, 5));
+    
+    return parsed;
   }
 
   return swaggerJsdoc({
